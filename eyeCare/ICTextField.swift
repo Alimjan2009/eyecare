@@ -1,17 +1,15 @@
 //
 //  ICTextField.swift
-//  eyeCare
+//  eye
 //
-//  Created by Alexey Dmitriev on 29/04/16.
-//  Copyright © 2016 IonCloud. All rights reserved.
+//  Created by Alimjan on 2021/3/18.
 //
 
 import Cocoa
-
 class ICTextField: NSTextField {
-    
-    override func textDidChange(notification: NSNotification) {
-        NSNotificationCenter.defaultCenter().postNotificationName("ICTextFieldDidChange", object: self)
+    override func textDidChange(_ notification: Notification) {
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ICTextFieldDidChange"), object: self)
+        
         super.textDidChange(notification)
     }
 }

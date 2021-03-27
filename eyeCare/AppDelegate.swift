@@ -1,16 +1,15 @@
 //
 //  AppDelegate.swift
-//  eyeCare
+//  eye
 //
-//  Created by Alexey Dmitriev on 26/04/16.
-//  Copyright © 2016 IonCloud. All rights reserved.
+//  Created by Alimjan on 2021/3/18.
 //
 
 import Cocoa
 
-@NSApplicationMain
+@main
 class AppDelegate: NSObject, NSApplicationDelegate {
-    
+
     @IBOutlet weak var aboutWindow: NSWindow!
     
     
@@ -31,24 +30,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     @IBOutlet weak var preferencesWindow: NSWindow!
-    private let changeImageInterval:NSTimeInterval = 10
+    private let changeImageInterval:TimeInterval = 10
     
-    private var breakTimeInSeconds:NSTimeInterval = 5*60
-    private var breakTimeout:NSTimeInterval = 25*60
+    private var breakTimeInSeconds:TimeInterval = 5*60
+    private var breakTimeout:TimeInterval = 25*60
     
     private var breakTimeCountDown = 5*60
     private var breakTimeoutCountDown = 25*60
     
-    private var timer: NSTimer?
-    private var breakTimer: NSTimer?
-    private var countDownTimer: NSTimer?
-    private var breakCountDownTimer: NSTimer?
+    private var timer: Timer?
+    private var breakTimer: Timer?
+    private var countDownTimer: Timer?
+    private var breakCountDownTimer: Timer?
     
     @IBOutlet weak var skipBreakMenuItem: NSMenuItem!
     @IBOutlet weak var skipButton: NSButton!
     @IBOutlet weak var breakMenuItem: NSMenuItem!
-    
-    let statusItem = NSStatusBar.systemStatusBar().statusItemWithLength(NSVariableStatusItemLength)
+   
+    let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     
     let overlayWindow = NSWindow()
     private var secondayOverlayWindows:[NSWindow] = [NSWindow]()
@@ -56,13 +55,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     @IBOutlet weak var statusMenu: NSMenu!
-    
     @IBAction func pauseMenuItemClicked(sender: AnyObject) {
         if isPaused {
             setBreakTimer()
             setBreakCountDownTimer()
             pauseMenuItem.title = "Pause"
-            breakMenuItem.hidden = false
+            breakMenuItem.isHidden = false
         } else {
             if (self.timer != nil) {
                 self.timer!.invalidate()
@@ -74,14 +72,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self.breakCountDownTimer!.invalidate()
             pauseMenuItem.title = "Unpause"
             breakTimeCountDown = Int(breakTimeout)
-            timeToNextBreak.title = secondsToFormat(breakTimeCountDown)
-            breakMenuItem.hidden = true
+            timeToNextBreak.title = secondsToFormat(num:breakTimeCountDown)
+            breakMenuItem.isHidden = true
         }
         isPaused = !isPaused
     }
     
     @IBAction func launchAtStartupCheckboxClicked(sender: AnyObject) {
-        if launchAtStartupCheckbox.state == NSOnState {
+        if launchAtStartupCheckbox.state == NSControl.StateValue.on {
             StartupLaunch.setLaunchOnLogin(true)
         } else {
             StartupLaunch.setLaunchOnLogin(false)
@@ -95,28 +93,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         resetBreakTimer()
     }
     @IBAction func preferencesClicked(sender: AnyObject) {
-        let scrn: NSScreen = NSScreen.mainScreen()!
+        
+        let scrn: NSScreen = NSScreen.main!
         let rect: NSRect = scrn.frame
         let height = rect.size.height
         let width = rect.size.width
+        NSApplication.shared.activate(ignoringOtherApps: true)
         
-        NSApplication.sharedApplication().activateIgnoringOtherApps(true)
         preferencesWindow.setFrameOrigin(NSPoint(x: width/2 - 230/2, y: height/2 - 145/2))
         preferencesWindow.makeKeyAndOrderFront(preferencesWindow)
     }
+
     @IBAction func aboutClicked(sender: AnyObject) {
-        let scrn: NSScreen = NSScreen.mainScreen()!
+        let scrn: NSScreen = NSScreen.main!
         let rect: NSRect = scrn.frame
         let height = rect.size.height
         let width = rect.size.width
         
-        NSApplication.sharedApplication().activateIgnoringOtherApps(true)
+        NSApplication.shared.activate(ignoringOtherApps: true)
         aboutWindow.setFrameOrigin(NSPoint(x: width/2 - 254/2, y: height/2 - 150/2))
         aboutWindow.makeKeyAndOrderFront(aboutWindow)
     }
     
     @IBAction func quitClicked(sender: AnyObject) {
-        NSApplication.sharedApplication().terminate(self)
+        NSApplication.shared.terminate(self)
     }
     
     @IBAction func breakClicked(sender: AnyObject) {
@@ -126,22 +126,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self.breakCountDownTimer!.invalidate()
             statusMenu.cancelTracking()
             changeImage()
-            let screens: [NSScreen] = NSScreen.screens()!
+            let screens: [NSScreen] = NSScreen.screens
             
-            for (_, screen) in screens.enumerate() {
+            for (_, screen) in screens.enumerated() {
                 let window = NSWindow()
-                window.collectionBehavior = NSWindowCollectionBehavior.CanJoinAllSpaces
+                window.collectionBehavior = NSWindow.CollectionBehavior.canJoinAllSpaces
                 let frame = screen.frame
-                window.level = Int(CGWindowLevelForKey(.StatusWindowLevelKey))
+                window.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.statusWindow)))
+//                window.level = Int(CGWindowLevelForKey(.StatusWindowLevelKey))
                 window.titlebarAppearsTransparent  =   true
-                window.titleVisibility             =   .Hidden
-                window.styleMask = NSBorderlessWindowMask
+                window.titleVisibility             =   .hidden
+                window.styleMask = NSWindow.StyleMask.borderless
+             
                 window.setFrame(frame, display: true)
                 window.makeKeyAndOrderFront(window)
                 secondayOverlayWindows.append(window)
             }
             
-            let screen = NSScreen.mainScreen()
+            let screen = NSScreen.main
             let rect: NSRect = screen!.frame
             let height = rect.size.height
             let width = rect.size.width
@@ -154,18 +156,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             skipButton.setFrameOrigin(NSPoint(x: width/2 - 75, y: 150))
             breakCountDownLabel.setFrameOrigin(NSPoint(x: width/2 - 87, y: 220))
             
-            self.timer = NSTimer.scheduledTimerWithTimeInterval(changeImageInterval,
+            self.timer = Timer.scheduledTimer(timeInterval:changeImageInterval,
                                                                 target:self,
                                                                 selector:#selector(AppDelegate.changeImage),
                                                                 userInfo:nil,
                                                                 repeats:true)
             
-            NSRunLoop.currentRunLoop().addTimer(timer!, forMode: NSRunLoopCommonModes)
+           RunLoop.current.add(timer!, forMode: RunLoopMode.commonModes)
             
-            skipBreakMenuItem.hidden = false
-            breakMenuItem.hidden = true
+            skipBreakMenuItem.isHidden = false
+            breakMenuItem.isHidden = true
             
-            self.breakTimer = NSTimer.scheduledTimerWithTimeInterval(breakTimeInSeconds,
+            self.breakTimer = Timer.scheduledTimer(timeInterval:breakTimeInSeconds,
                                                                      target:self,
                                                                      selector:#selector(AppDelegate.resetBreakTimer),
                                                                      userInfo:nil,
@@ -173,25 +175,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             breakTimeoutCountDown = Int(breakTimeInSeconds)
             
-            breakCountDownText.title = secondsToFormat(breakTimeoutCountDown)
+            breakCountDownText.title = secondsToFormat(num:breakTimeoutCountDown)
             
-            self.countDownTimer = NSTimer.scheduledTimerWithTimeInterval(1,
+            self.countDownTimer = Timer.scheduledTimer(timeInterval: 1,
                                                                          target:self,
                                                                          selector:#selector(AppDelegate.updateText),
                                                                          userInfo:nil,
                                                                          repeats:true)
-            NSRunLoop.currentRunLoop().addTimer(countDownTimer!, forMode: NSRunLoopCommonModes)
+           RunLoop.current.add(countDownTimer!, forMode: RunLoopMode.commonModes)
         }
     }
     
-    func updateText(){
+    @objc func updateText(){
         breakTimeoutCountDown = breakTimeoutCountDown - 1
-        breakCountDownText.title = secondsToFormat(breakTimeoutCountDown)
+        breakCountDownText.title = secondsToFormat(num:breakTimeoutCountDown)
     }
     
-    func updateLabel(){
+    @objc func updateLabel(){
         breakTimeCountDown = breakTimeCountDown - 1
-        timeToNextBreak.title = secondsToFormat(breakTimeCountDown)
+        timeToNextBreak.title = secondsToFormat(num:breakTimeCountDown)
     }
     
     func secondsToFormat(num: Int) -> String {
@@ -206,20 +208,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return minutes + " : " + seconds;
     }
     
-    func resetBreakTimer(){
+    @objc func resetBreakTimer(){
         self.timer!.invalidate()
         self.countDownTimer!.invalidate()
         self.breakTimer!.invalidate()
         self.breakCountDownTimer!.invalidate()
         overlayWindow.setIsVisible(false)
-        skipBreakMenuItem.hidden = true
-        breakMenuItem.hidden = false
+        skipBreakMenuItem.isHidden = true
+        breakMenuItem.isHidden = false
         
-        for (_, window) in self.secondayOverlayWindows.enumerate() {
+        for (_, window) in self.secondayOverlayWindows.enumerated() {
             window.setIsVisible(false)
             window.orderOut(window)
-            if let objIndex=self.secondayOverlayWindows.indexOf(window){
-                self.secondayOverlayWindows.removeAtIndex(objIndex)
+            
+            if let objIndex=self.secondayOverlayWindows.index(of:window){
+                self.secondayOverlayWindows.remove(at: objIndex)
             }
         }
         
@@ -227,72 +230,77 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setBreakCountDownTimer()
     }
     
-    func changeImage(){
+    @objc func changeImage(){
         let scrn: NSScreen = overlayWindow.screen!
         let rect: NSRect = scrn.frame
         let height = rect.size.height
         let width = rect.size.width
-        
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)) {
-            let url = "https://source.unsplash.com/random/"+String(Int(width))+"x"+String(Int(height))
-            let data = NSData(contentsOfURL: NSURL(string: url)!)
-            if (data !== nil){
-                let imageFromUrl =  NSImage(data: data!)
-                self.overlayWindow.backgroundColor =  NSColor (patternImage: imageFromUrl!)
+        DispatchQueue.global().async {
+            do {
+                let url = "https://source.unsplash.com/random/"+String(Int(width))+"x"+String(Int(height))
+                let data = try Data(contentsOf: URL(string: url)!)
                 
-                for (_, window) in self.secondayOverlayWindows.enumerate() {
-                    let screenSize = window.screen!.frame.size
-                    let imageFromUrl2 =  NSImage(data: data!)
-                    imageFromUrl2!.size = NSSize(width: screenSize.width, height: screenSize.height)
-                    window.backgroundColor =  NSColor (patternImage: imageFromUrl2!)
-                }
-                
-                
+                    let imageFromUrl =  NSImage(data: data)
+                    self.overlayWindow.backgroundColor =  NSColor (patternImage: imageFromUrl!)
+                    
+                    for (_, window) in self.secondayOverlayWindows.enumerated() {
+                        let screenSize = window.screen!.frame.size
+                        let imageFromUrl2 =  NSImage(data: data)
+                        imageFromUrl2!.size = NSSize(width: screenSize.width, height: screenSize.height)
+                        window.backgroundColor =  NSColor (patternImage: imageFromUrl2!)
+                    }
+                    
+          
+            }catch  {
+  
             }
+            
         }
+
     }
-    
-    func applicationDidFinishLaunching(aNotification: NSNotification) {
-        self.overlayWindow.collectionBehavior = NSWindowCollectionBehavior.CanJoinAllSpaces
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
         
-        let icon = NSImage(named: "StatusBarIcon")
-        icon?.template = true
+        self.overlayWindow.collectionBehavior = NSWindow.CollectionBehavior.canJoinAllSpaces
+        
+        let icon = NSImage(named: NSImage.Name(rawValue: "StatusBarIcon"))
+        icon?.isTemplate = true
         statusItem.image = icon
         statusItem.menu = statusMenu
-        overlayWindow.level = Int(CGWindowLevelForKey(.StatusWindowLevelKey))
         
+        overlayWindow.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.statusWindow)))
         
         overlayWindow.titlebarAppearsTransparent  =   true
-        overlayWindow.titleVisibility             =   .Hidden
-        overlayWindow.styleMask = NSBorderlessWindowMask
-        
+        overlayWindow.titleVisibility             =   .hidden
+
+        overlayWindow.styleMask = NSWindow.StyleMask.borderless
         overlayWindow.setFrameOrigin(NSPoint(x: 0, y: 0))
         
-        overlayWindow.titleVisibility = NSWindowTitleVisibility.Hidden;
+        overlayWindow.titleVisibility = NSWindow.TitleVisibility.hidden;
         overlayWindow.titlebarAppearsTransparent = true
         
-        skipBreakMenuItem.hidden = true
+        skipBreakMenuItem.isHidden = true
         overlayWindow.contentView?.addSubview(skipButton)
         overlayWindow.contentView?.addSubview(breakCountDownLabel)
-        breakCountDownLabel.cell?.backgroundStyle = NSBackgroundStyle.Raised
+        breakCountDownLabel.cell?.backgroundStyle = NSView.BackgroundStyle.raised
         
-        overlayWindow.backgroundColor = NSColor (patternImage: NSImage(named: "background")!)
+        overlayWindow.backgroundColor = NSColor (patternImage: NSImage(named: NSImage.Name(rawValue: "background"))!)
         
         getPreferences()
         changeImage()
         setBreakTimer()
         setBreakCountDownTimer()
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.breakForTextDidChange), name: "ICTextFieldDidChange", object: BreakForTextField)
+        NotificationCenter.default.addObserver(self, selector: #selector(AppDelegate.breakForTextDidChange), name: NSNotification.Name(rawValue: "ICTextFieldDidChange"), object: BreakForTextField)
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.breakIntrevalTextDidChange), name: "ICTextFieldDidChange", object: BreakIntervalTextField)
+        NotificationCenter.default.addObserver(self, selector: #selector(AppDelegate.breakIntrevalTextDidChange), name: NSNotification.Name(rawValue: "ICTextFieldDidChange"), object: BreakIntervalTextField)
         
         
     }
     
-    func breakForTextDidChange(notification: NSNotification){
+    @objc func breakForTextDidChange(notification: NSNotification){
         var value = Int(breakForTextCell.title)
-        if !(value > 0){
+        if !(value ?? 0 > 0){
             value = 5
         }
         
@@ -300,10 +308,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         breakTimeCountDown = value!
         
         
-        let defaults = NSUserDefaults.standardUserDefaults()
-        defaults.setInteger(value!, forKey: "BreakTime")
+        let defaults = UserDefaults.standard
+        defaults.set(value!, forKey: "BreakTime")
         
-        breakTimeInSeconds = NSTimeInterval(breakTimeCountDown)
+        breakTimeInSeconds = TimeInterval(breakTimeCountDown)
         breakMenuItem.title = "Break for " + String(breakTimeCountDown/60) + " min"
         
         self.breakTimer!.invalidate()
@@ -312,9 +320,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setBreakCountDownTimer()
     }
     
-    func breakIntrevalTextDidChange(notification: NSNotification){
+    @objc func breakIntrevalTextDidChange(notification: NSNotification){
         var value = Int(breakIntervalTextCell.title)
-        if !(value > 0){
+        if !(value ?? 0 > 0){
             value = 30
         }
         
@@ -322,10 +330,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         breakTimeoutCountDown = value!
         
-        breakTimeout = NSTimeInterval(breakTimeoutCountDown)
+        breakTimeout = TimeInterval(breakTimeoutCountDown)
         
-        let defaults = NSUserDefaults.standardUserDefaults()
-        defaults.setInteger(value!, forKey: "BreakTimeout")
+        let defaults = UserDefaults.standard
+        defaults.set(value!, forKey: "BreakTimeout")
         
         self.breakTimer!.invalidate()
         self.breakCountDownTimer!.invalidate()
@@ -335,15 +343,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     
     func getPreferences(){
-        if StartupLaunch.isAppLoginItem() {
-            launchAtStartupCheckbox.state = NSOnState
+        
+        if StartupLaunch.isAppLoginItem {
+            launchAtStartupCheckbox.state = NSControl.StateValue.on
         } else {
-            launchAtStartupCheckbox.state = NSOffState
+            launchAtStartupCheckbox.state = NSControl.StateValue.off
         }
         
-        let defaults = NSUserDefaults.standardUserDefaults()
-        let breakTimeoutCountDownStored = defaults.integerForKey("BreakTimeout")
-        let breakTimeCountDownStored = defaults.integerForKey("BreakTime")
+        let defaults = UserDefaults.standard
+        let breakTimeoutCountDownStored = defaults.integer(forKey: "BreakTimeout")
+        let breakTimeCountDownStored = defaults.integer(forKey: "BreakTime")
         
         if (breakTimeoutCountDownStored == 0){
             breakTimeoutCountDown = 25*60
@@ -357,8 +366,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             breakTimeCountDown = breakTimeCountDownStored
         }
         
-        breakTimeout = NSTimeInterval(breakTimeoutCountDown)
-        breakTimeInSeconds = NSTimeInterval(breakTimeCountDown)
+        breakTimeout = TimeInterval(breakTimeoutCountDown)
+        breakTimeInSeconds = TimeInterval(breakTimeCountDown)
         breakMenuItem.title = "Break for " + String(breakTimeCountDown/60) + " min"
         
         breakForTextCell.title = String(breakTimeCountDown/60)
@@ -369,31 +378,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func setBreakCountDownTimer(){
         breakTimeCountDown = Int(breakTimeout)
         
-        timeToNextBreak.title = secondsToFormat(breakTimeCountDown)
+        timeToNextBreak.title = secondsToFormat(num:breakTimeCountDown)
         
-        self.breakCountDownTimer = NSTimer.scheduledTimerWithTimeInterval(1,
+        self.breakCountDownTimer = Timer.scheduledTimer(timeInterval: 1,
                                                                           target:self,
                                                                           
                                                                           selector:#selector(AppDelegate.updateLabel),
                                                                           userInfo:nil,
                                                                           repeats:true)
-        NSRunLoop.currentRunLoop().addTimer(breakCountDownTimer!, forMode: NSRunLoopCommonModes)
+       RunLoop.current.add(breakCountDownTimer!, forMode: RunLoopMode.commonModes)
     }
     
     func setBreakTimer(){
-        self.breakTimer = NSTimer.scheduledTimerWithTimeInterval(breakTimeout,
+        self.breakTimer = Timer.scheduledTimer(timeInterval: breakTimeout,
                                                                  target:self,
                                                                  selector:#selector(AppDelegate.breakClicked),
                                                                  userInfo:nil,
                                                                  repeats:false)
-        NSRunLoop.currentRunLoop().addTimer(breakTimer!, forMode: NSRunLoopCommonModes)
+       RunLoop.current.add(breakTimer!, forMode: RunLoopMode.commonModes)
         
     }
     
-    func applicationWillTerminate(aNotification: NSNotification) {
+    func applicationWillTerminate(_ aNotification: NSNotification) {
         // Insert code here to tear down your application
     }
-    
     
 }
 
