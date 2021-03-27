@@ -1,3 +1,6 @@
+# forked from appbak3r/eyecare
+# adapted to swift4
+
 #<img src="http://i.imgur.com/8Bat038.png" align="center" width="40">  eyeCare 
  Care your eyes while working at your Mac. Short break reminder and screen locker.
 [Download latest release](https://goo.gl/cT7NRb)
